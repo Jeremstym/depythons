@@ -12,6 +12,9 @@ import requests
 import warnings
 import re
 import bs4
+import time
+from urllib import request
+
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=UserWarning)
@@ -79,18 +82,18 @@ class CPCApi(object):
         url = '%s/recherche/%s?page=%s&format=%s' % (self.base_url, q, page, 'csv')
         return requests.get(url).content
     
-    def interventions(self, dep_name):
-        name = self.search_parlementaires(dep_name)[0][0]['nom']
+    def interventions(self, dep_name, n_sessions=10, start=4850):
+        name = self.search_parlementaires(dep_name)[0][0]["nom"]
         dep_intervention = []
-        pattern = "(?<=Permalien" + name + ").*?(?=Voir tous les commentaires)"
-        for num_txt in range(5000,5050):
+        pattern = "(?<=Permalien" + name + ")" + ".*?(?=Voir tous les commentaires)"
+        for num_txt in range(start, start + n_sessions):
             url = "https://www.nosdeputes.fr/15/seance/%s" % (str(num_txt))
-            source = requests.get(url)
-            source.encoding = source.apparent_encoding
-            page = bs4.BeautifulSoup(source.text, "lxml")
+            source = request.urlopen(url).read()            
+            # source.encoding = source.apparent_encoding
+            page = bs4.BeautifulSoup(source, "lxml")
             x = re.findall(pattern, page.get_text(), flags=re.S)
             dep_intervention += x
-        
+
         return dep_intervention
 
         
@@ -131,6 +134,8 @@ deputies_df.head()
 #    l += re.findall('(?<=Permalien)Jean Castex.*Voir tous les commentaires',
 #                    parler.get_text(), flags=re.S)
 
+
+# Bonjour je fais un test de commentaire pour faire du git
             
         
 
